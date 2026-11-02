@@ -18,7 +18,7 @@ def digest(data):
 
 
 def chunks(text, size=8000, overlap=300):
-    if not 200 <= size <= 50000 or not 0 <= overlap < size:
+    if type(size) is not int or type(overlap) is not int or not 200 <= size <= 50000 or not 0 <= overlap < size:
         raise ValueError('Chunk size must be 200..50000 characters and overlap smaller than size')
     start = 0
     while start < len(text):
@@ -36,7 +36,7 @@ def read_source(path):
 
 
 def create_job(path, query, size=8000, overlap=300):
-    if not re.findall(r'\w+',query): raise ValueError('A query needs searchable words or identifiers')
+    if type(query) is not str or not re.findall(r'\w+',query): raise ValueError('A query needs searchable words or identifiers')
     data,text = read_source(path)
     parts = list(chunks(text,size,overlap))
     return {'format': FORMAT, 'source': str(Path(path).resolve()), 'source_sha256': digest(data),
@@ -45,15 +45,25 @@ def create_job(path, query, size=8000, overlap=300):
 
 
 def advance(job, budget=100, limit=8):
-    if job.get('format') != FORMAT or not 1 <= budget <= 1000 or not 1 <= limit <= 50:
+    if type(job) is not dict or job.get('format') != FORMAT or type(budget) is not int or type(limit) is not int or not 1 <= budget <= 1000 or not 1 <= limit <= 50:
         raise ValueError('Invalid job format, chunk budget (1..1000), or result limit (1..50)')
+    if not {'source', 'source_sha256', 'query', 'chunk_chars', 'overlap', 'next_chunk', 'total_chunks', 'hits'} <= job.keys():
+        raise ValueError('Incomplete saved job; create a new job or restore the complete saved state')
+    if type(job['source']) is not str or not job['source'].strip() or type(job['source_sha256']) is not str or not re.fullmatch(r'[0-9a-f]{64}', job['source_sha256']):
+        raise ValueError('Corrupt saved source identity')
+    if type(job['query']) is not str or not re.findall(r'\w+', job['query']):
+        raise ValueError('Corrupt saved query')
+    if type(job['total_chunks']) is not int or type(job['next_chunk']) is not int:
+        raise ValueError('Corrupt job cursor')
+    if 'result_limit' in job and type(job['result_limit']) is not int:
+        raise ValueError('Corrupt saved result limit')
     if 'result_limit' in job and job['result_limit'] != limit:
         raise ValueError('Result limit is frozen for a job; create a new job to change it')
     data,text = read_source(job['source'])
     if digest(data) != job['source_sha256']:
         raise ValueError('Source changed; create a new job. Old evidence is retained unchanged.')
     parts = list(chunks(text,job['chunk_chars'],job['overlap']))
-    if job['total_chunks'] != len(parts) or not isinstance(job['next_chunk'],int) or not 0 <= job['next_chunk'] <= len(parts):
+    if job['total_chunks'] != len(parts) or not 0 <= job['next_chunk'] <= len(parts):
         raise ValueError('Corrupt job cursor')
     terms = set(re.findall(r'\w+',job['query'].casefold()))
     # A resume file is editable. Recheck retained evidence against the source

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — staged 2026-11-02
+
+- Bound the retained native guide instead of promising arbitrarily long inputs, and label its historical reported answers separately from a current controlled benchmark.
+- Validate saved job shapes and numeric types before reading/mutating resumable state. Boolean cursors and non-integer budgets/limits are refused, and malformed saved JSON shapes produce a normal CLI error. Exact source, hash, excerpt and valid-resume behavior remain covered; no semantic retrieval or completeness benefit is claimed.
+
 ## Unreleased — optional coaching checkpoint
 
 - Add a self-contained opt-in practice/review guide with a fictional task, preserved baseline, explicit scope/budget, user stop, reviewed keep/revert and private-by-choice records. Keep native operations, existing method budgets and evidence rules unchanged; no human efficacy or outside-use result is claimed.

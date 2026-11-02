@@ -55,24 +55,18 @@ The worked examples on the site are fictional. They illustrate the output and de
 
 ### amplifier-module-tool-rlm
 
-Recursive Language Model (RLM) tool for [Amplifier](https://github.com/microsoft/amplifier) - enables processing of arbitrarily long contexts through recursive decomposition.
+Optional Recursive Language Model (RLM) tool for [Amplifier](https://github.com/microsoft/amplifier): explores chunks through a configured native engine. Recursion does not remove model, memory, time or call-budget limits. The portable extractive helper described above accepts UTF-8 files up to 8 MB and does not synthesize an answer.
 
 ## The Problem: Context Window Limits
 
-Modern LLMs have context window limits:
-
-| Model | Max Context | Practical Limit |
-|-------|-------------|-----------------|
-| Claude Sonnet | ~200K tokens | ~150K usable |
-| GPT-4 | ~128K tokens | ~100K usable |
-| Gemini | ~1M tokens | ~800K usable |
+Model context windows depend on the exact provider and version. Check the configured host's current limits and set a task budget rather than relying on a generic model-name table.
 
 **What happens when your document exceeds these limits?**
 - Truncation loses critical information
 - Summarization loses detail
 - RAG may miss relevant chunks
 
-**RLM solves this** by letting the LLM recursively process chunks while maintaining the ability to synthesize information across the entire document.
+The optional native engine lets a configured model inspect chunks and attempt synthesis. That mechanism alone does not establish complete coverage or a correct answer; both need task-specific checks. Native provider/Docker acceptance and scale remain separate from the extractive-helper tests.
 
 ## How RLM Works
 
@@ -124,9 +118,9 @@ RLM treats the input as an **external environment** that the LLM can programmati
 - **Codebase Understanding**: "How does the authentication flow work?" (across multiple files)
 - **Research Synthesis**: "What are the key findings across these 50 papers?"
 
-## Validated Results
+## Retained source-author example — not a current benchmark
 
-We tested RLM with multi-hop analytical queries requiring fact synthesis:
+The earlier guide reported the following multi-hop analytical example. Its table is retained as source history. This round did not replay or independently verify these numbers against a current control, so the helper checks must not be used to promote them into current comparative-performance or scale evidence. They do not describe the portable helper's behavior.
 
 ### Test Setup
 - **Query**: "What is the per-engineer quarterly investment in Project Titan?"
@@ -141,7 +135,7 @@ We tested RLM with multi-hop analytical queries requiring fact synthesis:
 | 1MB | ~250K | $64,400 ✅ | Correct |
 | 5MB | ~1.25M | $64,400 ✅ | Correct |
 
-**Key Finding**: RLM correctly performs multi-hop reasoning even when the answer requires combining information from different document sections.
+**Interpretation limit:** these retained reported answers do not establish general multi-hop accuracy, an unbounded input limit or superiority over another method.
 
 ## Installation
 
